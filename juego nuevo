@@ -1,0 +1,80 @@
+import pygame
+import random
+
+# Inicializar Pygame
+pygame.init()
+
+# Dimensiones de la pantalla
+WIDTH, HEIGHT = 800, 600
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Carrito vs Zombies")
+
+# Colores
+WHITE = (255, 255, 255)
+RED = (255, 0, 0)
+
+# Carrito del jugador
+player_img = pygame.image.load("carrito.png")
+player_rect = player_img.get_rect()
+player_rect.centerx = WIDTH // 2
+player_rect.bottom = HEIGHT - 20
+player_speed = 5
+
+# Lista de zombies
+zombie_img = pygame.image.load("zombie.png")
+zombies = []
+zombie_speed = 3
+spawn_timer = 60  # Tiempo en frames para generar un nuevo zombie
+
+# Puntuación
+score = 0
+font = pygame.font.Font(None, 36)
+
+clock = pygame.time.Clock()
+running = True
+
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
+    # Mover el carrito del jugador
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_LEFT]:
+        player_rect.x -= player_speed
+    if keys[pygame.K_RIGHT]:
+        player_rect.x += player_speed
+
+    # Generar nuevos zombies
+    spawn_timer -= 1
+    if spawn_timer <= 0:
+        new_zombie = zombie_img.get_rect(midbottom=(random.randint(0, WIDTH), 0))
+        zombies.append(new_zombie)
+        spawn_timer = 60  # Reiniciar el temporizador
+
+    # Mover y dibujar zombies
+    for zombie in zombies:
+        zombie.y += zombie_speed
+        screen.blit(zombie_img, zombie)
+
+        # Detectar colisión con el jugador
+        if zombie.colliderect(player_rect):
+            running = False
+
+        # Eliminar zombies que salen de la pantalla
+        if zombie.top > HEIGHT:
+            zombies.remove(zombie)
+            score += 1
+
+    # Dibujar el jugador
+    screen.fill(WHITE)
+    screen.blit(player_img, player_rect)
+
+    # Mostrar puntuación
+    score_text = font.render(f"Score: {score}", True, RED)
+    screen.blit(score_text, (10, 10))
+
+    pygame.display.flip()
+    clock.tick(60)
+
+pygame.quit()
